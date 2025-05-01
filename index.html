@@ -216,7 +216,7 @@
 
         if (player.position === 99) {
           statusDiv.innerText = `🏁 آفرین ${playerName}! برنده شدی!`;
-          winSound.play().catch(()=>{});
+          winSound.play().catch(() => {});
           updatePlayer();
           return;
         }
@@ -224,7 +224,7 @@
         if (hasNoon(word)) {
           const boosted = Math.min(player.position + 5, 99);
           statusDiv.innerText = `✅ ${playerName}! "${word}" حاوی "ن" بود، کارت عالیه! رفتی بالا!`;
-          goodSound.play().catch(()=>{});
+          goodSound.play().catch(() => {});
           animateMove(boosted, () => {
             player.position = boosted;
             updatePlayer();
@@ -232,7 +232,7 @@
         } else {
           const dropped = Math.max(player.position - 3, 0);
           statusDiv.innerText = `🐍 ${playerName}! "${word}" بدون "ن" بود، دوباره تلاش کن!`;
-          failSound.play().catch(()=>{});
+          failSound.play().catch(() => {});
           animateMove(dropped, () => {
             player.position = dropped;
             updatePlayer();
@@ -247,7 +247,7 @@
       movePlayer(dice);
     });
 
-    // تابعی برای خواندن پیام خوش‌آمدگویی به صورت صمیمی
+    // تابع خواندن پیام خوش‌آمدگویی به صورت صمیمی
     function speakWelcome(name) {
       const welcomeText = `سلام گرم و صمیمی به ${name} عزیز! خوش آمدی به بازی مار و پله. امیدوارم کلی خوش بگذرونی!`;
       const utterance = new SpeechSynthesisUtterance(welcomeText);
@@ -256,7 +256,8 @@
       statusDiv.innerText = `🌟 سلام گرم به ${name}! آماده‌ای برای شروع بازی؟`;
     }
 
-    // تابع برای بررسی اینکه ورودی فقط شامل حروف فارسی باشد (با در نظر گرفتن فضای خالی)
+    // تابع بررسی اینکه ورودی فقط شامل حروف فارسی باشد.
+    // اگر کاربر از حروف انگلیسی استفاده کند، نام معتبر نخواهد بود.
     function isPersian(text) {
       const persianRegex = /^[\u0600-\u06FF\s]+$/;
       return persianRegex.test(text);
@@ -270,6 +271,7 @@
         return;
       }
 
+      // اگر نام شامل حروف غیر فارسی (مثلاً انگلیسی) باشد، اجازه ادامه بازی داده نمی‌شود.
       if (!isPersian(name)) {
         alert("❌ لطفاً فقط از حروف فارسی استفاده کن.");
         return;
@@ -278,6 +280,7 @@
       playerName = name;
       document.getElementById("overlay").style.display = "none";
 
+      // پخش صداهای اولیه (به عنوان نمونه)
       winSound.play().catch(() => {});
       goodSound.play().catch(() => {});
       failSound.play().catch(() => {});
