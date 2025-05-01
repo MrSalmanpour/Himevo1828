@@ -9,10 +9,11 @@
       font-family: 'Vazirmatn', sans-serif;
       direction: rtl;
       text-align: center;
-      background: linear-gradient(145deg, #e6f0ff, #ffffff);
       margin: 0;
       padding: 20px;
+      background: #f8f8f8;
     }
+    /* Overlay برای ورود نام */
     #overlay {
       position: fixed;
       top: 0;
@@ -20,7 +21,7 @@
       width: 100vw;
       height: 100vh;
       background: rgba(255,255,255,0.95);
-      z-index: 999;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -43,10 +44,36 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    /* محیط واقعی: نیمکت مدرسه */
+    #bench {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      height: 200px;
+      background: url('https://via.placeholder.com/600x200?text=School+Bench') no-repeat center center;
+      background-size: cover;
+      z-index: -2;
+    }
+    /* محیط واقعی: کتاب فارسی اول دبستان */
+    #book {
+      position: absolute;
+      bottom: 20px;
+      left: calc(50% + 300px);
+      width: 150px;
+      height: 100px;
+      background: url('https://via.placeholder.com/150x100?text=Open+Persian+Book') no-repeat center center;
+      background-size: cover;
+      z-index: -1;
+    }
+    /* کانتینر تخته بازی */
     #board-container {
+      position: relative;
       perspective: 1200px;
-      margin: auto;
+      margin: 60px auto; 
       width: fit-content;
+      z-index: 1;
     }
     #board {
       transform: rotateX(20deg) rotateY(10deg);
@@ -57,6 +84,7 @@
       margin: 20px auto;
       box-shadow: 0 8px 20px rgba(0,0,0,0.2);
       border-radius: 12px;
+      background: #fff;
     }
     .cell {
       border: 1px solid #ccc;
@@ -81,6 +109,7 @@
       height: 36px;
       border-radius: 5px;
     }
+    /* مهره بازیکن با افکت سه‌بعدی واقعی */
     .player {
       position: absolute;
       bottom: 4px;
@@ -89,9 +118,9 @@
       height: 24px;
       background: radial-gradient(circle at 30% 30%, #ff0000, #800000);
       border-radius: 50%;
-      box-shadow: 0 0 6px rgba(0,0,0,0.5);
-      transform: translateZ(20px);
-      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.6);
+      transform: perspective(600px) rotateX(30deg) translateZ(20px);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     #diceButton {
       font-size: 22px;
@@ -115,11 +144,16 @@
   </style>
 </head>
 <body>
+  <!-- بخش ورود نام -->
   <div id="overlay">
     <div>👤 لطفاً نام خود را وارد کن:</div>
     <input type="text" id="playerName" placeholder="نام شما">
     <button onclick="startGame()">شروع بازی</button>
   </div>
+
+  <!-- المان‌های محیط واقعی -->
+  <div id="bench"></div>
+  <div id="book"></div>
 
   <h1>🎲 بازی مار و پله - حرف "ن"</h1>
   <div id="board-container">
@@ -257,10 +291,24 @@
     }
 
     // تابع بررسی اینکه ورودی فقط شامل حروف فارسی باشد.
-    // اگر کاربر از حروف انگلیسی استفاده کند، نام معتبر نخواهد بود.
     function isPersian(text) {
       const persianRegex = /^[\u0600-\u06FF\s]+$/;
       return persianRegex.test(text);
+    }
+
+    // تابع بررسی کلمات نامناسب در نام وارد شده
+    function containsBadWord(text) {
+      const badWords = [
+        "کص", "کیر", "جنده", "خار", "کونی", "کثافت", "چوخ", "پدرسگ",
+        "مادرجنده", "تخم", "کسخل", "عوضی", "عن", "ننه مرده", "لاشی",
+        "بی‌شعور", "احمق", "خر", "پفیوز", "دیوث", "ساک", "جق", "جلق", "چس", "پشکل"
+      ];
+      for (let word of badWords) {
+        if (text.includes(word)) {
+          return true;
+        }
+      }
+      return false;
     }
 
     function startGame() {
@@ -271,23 +319,10 @@
         return;
       }
 
-      // اگر نام شامل حروف غیر فارسی (مثلاً انگلیسی) باشد، اجازه ادامه بازی داده نمی‌شود.
       if (!isPersian(name)) {
         alert("❌ لطفاً فقط از حروف فارسی استفاده کن.");
         return;
       }
 
-      playerName = name;
-      document.getElementById("overlay").style.display = "none";
-
-      // پخش صداهای اولیه (به عنوان نمونه)
-      winSound.play().catch(() => {});
-      goodSound.play().catch(() => {});
-      failSound.play().catch(() => {});
-
-      createBoard();
-      speakWelcome(name);
-    }
-  </script>
-</body>
-</html>
+      if (containsBadWord(name)) {
+        alert("❌ نام وارد
