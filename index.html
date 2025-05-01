@@ -247,29 +247,31 @@
       movePlayer(dice);
     });
 
+    // تابعی برای خواندن پیام خوش‌آمدگویی به صورت صمیمی
     function speakWelcome(name) {
-      const welcomeText = `سلام ${name}! خوش آمدی به بازی مار و پله`;
+      const welcomeText = `سلام گرم و صمیمی به ${name} عزیز! خوش آمدی به بازی مار و پله. امیدوارم کلی خوش بگذرونی!`;
       const utterance = new SpeechSynthesisUtterance(welcomeText);
       utterance.lang = 'fa-IR';
       speechSynthesis.speak(utterance);
+      statusDiv.innerText = `🌟 سلام گرم به ${name}! آماده‌ای برای شروع بازی؟`;
+    }
+
+    // تابع برای بررسی اینکه ورودی فقط شامل حروف فارسی باشد (با در نظر گرفتن فضای خالی)
+    function isPersian(text) {
+      const persianRegex = /^[\u0600-\u06FF\s]+$/;
+      return persianRegex.test(text);
     }
 
     function startGame() {
       const name = document.getElementById("playerName").value.trim();
-      const badWords = [
-        "کص", "کیر", "جنده", "خار", "کونی", "کثافت", "چوخ", "پدرسگ",
-        "مادرجنده", "تخم", "کسخل", "عوضی", "عن", "ننه مرده", "لاشی",
-        "بی‌شعور", "احمق", "خر", "پفیوز", "دیوث", "ساک", "جق", "جلق", "چس", "پشکل"
-      ];
-      const containsBadWord = badWords.some(bad => name.toLowerCase().includes(bad));
 
       if (!name) {
         alert("لطفاً نام خود را وارد کن.");
         return;
       }
 
-      if (containsBadWord) {
-        alert("❌ نام واردشده مجاز نیست.");
+      if (!isPersian(name)) {
+        alert("❌ لطفاً فقط از حروف فارسی استفاده کن.");
         return;
       }
 
