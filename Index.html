@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>بازی مار و پله - حرف نون</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
+    body {
+      font-family: 'Vazirmatn', sans-serif;
+      direction: rtl;
+      text-align: center;
+      background: linear-gradient(145deg, #e6f0ff, #ffffff);
+      margin: 0;
+      padding: 20px;
+    }
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(255,255,255,0.95);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    }
+    #overlay input {
+      padding: 10px;
+      font-size: 18px;
+      margin-top: 10px;
+      width: 250px;
+    }
+    #overlay button {
+      padding: 10px 30px;
+      font-size: 18px;
+      margin-top: 15px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    #board-container {
+      perspective: 1200px;
+      margin: auto;
+      width: fit-content;
+    }
+    #board {
+      transform: rotateX(20deg) rotateY(10deg);
+      display: grid;
+      grid-template-columns: repeat(10, 60px);
+      grid-template-rows: repeat(10, 60px);
+      gap: 2px;
+      margin: 20px auto;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      border-radius: 12px;
+    }
+    .cell {
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      position: relative;
+      flex-direction: column;
+      padding: 4px;
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+      transition: transform 0.3s;
+    }
+    .cell:hover {
+      transform: scale(1.05);
+      z-index: 10;
+    }
+    .cell img {
+      width: 36px;
+      height: 36px;
+      border-radius: 5px;
+    }
+    .player {
+      position: absolute;
+      bottom: 4px;
+      right: 4px;
+      width: 24px;
+      height: 24px;
+      background: radial-gradient(circle at 30% 30%, #ff0000, #800000);
+      border-radius: 50%;
+      box-shadow: 0 0 6px rgba(0,0,0,0.5);
+      transform: translateZ(20px);
+      transition: all 0.3s ease;
+    }
+    #diceButton {
+      font-size: 22px;
+      padding: 10px 30px;
+      cursor: pointer;
+      border: none;
+      background: #4a90e2;
+      color: white;
+      border-radius: 10px;
+      transition: background 0.3s;
+    }
+    #diceButton:hover {
+      background: #357ab8;
+    }
+    #status {
+      margin-top: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <div>👤 لطفاً نام خود را وارد کن:</div>
+    <input type="text" id="playerName" placeholder="نام شما">
+    <button onclick="startGame()">شروع بازی</button>
+  </div>
+
+  <h1>🎲 بازی مار و پله - حرف "ن"</h1>
+  <div id="board-container">
+    <div id="board"></div>
+  </div>
+  <button id="diceButton">🎲 تاس بنداز</button>
+  <div id="status"></div>
+
+  <audio id="winSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_efe5004ecb.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+  <audio id="goodSound" src="https://cdn.pixabay.com/download/audio/2021/08/04/audio_1c29baf401.mp3?filename=correct-6033.mp3"></audio>
+  <audio id="failSound" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_ef2f6ec72b.mp3?filename=error-2-126514.mp3"></audio>
+  <audio id="welcomeSound"></audio>
+
+  <script>
+    const board = document.getElementById("board");
+    const statusDiv = document.getElementById("status");
+    const diceButton = document.getElementById("diceButton");
+    const winSound = document.getElementById("winSound");
+    const goodSound = document.getElementById("goodSound");
+    const failSound = document.getElementById("failSound");
+    const welcomeSound = document.getElementById("welcomeSound");
+
+    const wordList = [...Array(100)].map((_, i) => `کلمه ${i + 1}`);
+    const words = wordList;
+    const player = { position: 0 };
+    let playerName = "";
+
+    function hasNoon(word) {
+      return word.includes("ن");
+    }
+
+    function getImageForWord(word) {
+      const randomId = Math.floor(Math.random() * 1000);
+      return `https://picsum.photos/seed/${randomId}/40/40`;
+    }
+
+    function createBoard() {
+      for (let i = 0; i < 100; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.id = "cell-" + i;
+
+        const word = words[i] || "";
+        const img = document.createElement("img");
+        img.src = getImageForWord(word);
+        const label = document.createElement("div");
+        label.innerText = word;
+
+        cell.appendChild(img);
+        cell.appendChild(label);
+        board.appendChild(cell);
+      }
+      updatePlayer();
+    }
+
+    function updatePlayer() {
+      document.querySelectorAll(".player").forEach(p => p.remove());
+      const cell = document.getElementById("cell-" + player.position);
+      const sphere = document.createElement("div");
+      sphere.classList.add("player");
+      cell.appendChild(sphere);
+    }
+
+    function animateMove(toPosition, callback) {
+      const from = player.position;
+      const step = from < toPosition ? 1 : -1;
+      let current = from;
+
+      const interval = setInterval(() => {
+        if (current !== from) {
+          document.querySelectorAll(".player").forEach(p => p.remove());
+          const cell = document.getElementById("cell-" + current);
+          const sphere = document.createElement("div");
+          sphere.classList.add("player");
+          cell.appendChild(sphere);
+        }
+        if (current === toPosition) {
+          clearInterval(interval);
+          callback();
+          return;
+        }
+        current += step;
+      }, 150);
+    }
+
+    function movePlayer(steps) {
+      const initial = player.position;
+      let target = initial + steps;
+      if (target >= 99) target = 99;
+
+      animateMove(target, () => {
+        player.position = target;
+        const word = words[player.position];
+
+        if (player.position === 99) {
+          statusDiv.innerText = `🏁 آفرین ${playerName}! برنده شدی!`;
+          winSound.play().catch(()=>{});
+          updatePlayer();
+          return;
+        }
+
+        if (hasNoon(word)) {
+          const boosted = Math.min(player.position + 5, 99);
+          statusDiv.innerText = `✅ ${playerName}! "${word}" حاوی "ن" بود، کارت عالیه! رفتی بالا!`;
+          goodSound.play().catch(()=>{});
+          animateMove(boosted, () => {
+            player.position = boosted;
+            updatePlayer();
+          });
+        } else {
+          const dropped = Math.max(player.position - 3, 0);
+          statusDiv.innerText = `🐍 ${playerName}! "${word}" بدون "ن" بود، دوباره تلاش کن!`;
+          failSound.play().catch(()=>{});
+          animateMove(dropped, () => {
+            player.position = dropped;
+            updatePlayer();
+          });
+        }
+      });
+    }
+
+    diceButton.addEventListener("click", () => {
+      const dice = Math.floor(Math.random() * 6) + 1;
+      statusDiv.innerText = `🎲 عدد تاس: ${dice}`;
+      movePlayer(dice);
+    });
+
+    function speakWelcome(name) {
+      const welcomeText = `سلام ${name}! خوش آمدی به بازی مار و پله`;
+      const utterance = new SpeechSynthesisUtterance(welcomeText);
+      utterance.lang = 'fa-IR';
+      speechSynthesis.speak(utterance);
+    }
+
+    function startGame() {
+      const name = document.getElementById("playerName").value.trim();
+      const badWords = [
+        "کص", "کیر", "جنده", "خار", "کونی", "کثافت", "چوخ", "پدرسگ",
+        "مادرجنده", "تخم", "کسخل", "عوضی", "عن", "ننه مرده", "لاشی",
+        "بی‌شعور", "احمق", "خر", "پفیوز", "دیوث", "ساک", "جق", "جلق", "چس", "پشکل"
+      ];
+      const containsBadWord = badWords.some(bad => name.toLowerCase().includes(bad));
+
+      if (!name) {
+        alert("لطفاً نام خود را وارد کن.");
+        return;
+      }
+
+      if (containsBadWord) {
+        alert("❌ نام واردشده مجاز نیست.");
+        return;
+      }
+
+      playerName = name;
+      document.getElementById("overlay").style.display = "none";
+
+      winSound.play().catch(() => {});
+      goodSound.play().catch(() => {});
+      failSound.play().catch(() => {});
+
+      createBoard();
+      speakWelcome(name);
+    }
+  </script>
+</body>
+</html>
